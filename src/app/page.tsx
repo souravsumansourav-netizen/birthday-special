@@ -51,6 +51,7 @@ export default function Home() {
       if (data.error) throw new Error(data.error);
 
       if (data.surprises && data.surprises.length > 0) {
+        window.scrollTo(0, 0);
         setSurprises(data.surprises);
         setIsRevealed(true);
         setSelectedSurpriseIndex(data.surprises.length - 1);
