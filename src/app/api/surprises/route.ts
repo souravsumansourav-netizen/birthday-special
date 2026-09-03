@@ -34,11 +34,20 @@ export async function GET(request: Request) {
     if (daysPassed < 0) daysPassed = 0;
     if (daysPassed > TOTAL_DAYS) daysPassed = TOTAL_DAYS;
 
-    // Calculate how many images should be revealed by now
-    // e.g., on day 1 of 29, we reveal floor(1/29 * 32) = 1
-    // on day 29 of 29, we reveal floor(29/29 * 32) = 32
     const totalImages = surprises.length;
-    let imagesToReveal = Math.floor((daysPassed / TOTAL_DAYS) * totalImages);
+    
+    // We want to pace the reveals evenly. If they haven't uploaded all images yet, 
+    // we assume there will be at least TOTAL_DAYS images eventually (1 per day).
+    const assumedTotal = Math.max(totalImages, TOTAL_DAYS);
+    let imagesToReveal = Math.round((daysPassed / TOTAL_DAYS) * assumedTotal);
+
+    // Ensure at least 1 image is revealed if any exist
+    if (imagesToReveal === 0 && totalImages > 0) {
+      imagesToReveal = 1;
+    }
+
+    // Never reveal more images than actually uploaded
+    imagesToReveal = Math.min(imagesToReveal, totalImages);
 
     // If today is exactly or past Oct 1, reveal all
     if (today >= startOfDay(END_DATE)) {
