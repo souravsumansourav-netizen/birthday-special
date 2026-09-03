@@ -26,10 +26,12 @@ export default function AdminPage() {
 
   const fetchSurprises = async () => {
     try {
-      const res = await fetch('/api/surprises?revealAll=true');
+      const res = await fetch(`/api/surprises?revealAll=true&passcode=${encodeURIComponent(passcode)}`);
       const data = await res.json();
-      if (data.surprises) {
+      if (res.ok && data.surprises) {
         setSurprises(data.surprises);
+      } else if (res.status === 401) {
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error("Failed to fetch surprises", error);
@@ -42,10 +44,19 @@ export default function AdminPage() {
     }
   }, [isAuthenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passcode.length > 0) {
-      setIsAuthenticated(true);
+      try {
+        const res = await fetch(`/api/surprises?revealAll=true&passcode=${encodeURIComponent(passcode)}`);
+        if (res.ok) {
+          setIsAuthenticated(true);
+        } else {
+          alert('Invalid passcode');
+        }
+      } catch (err) {
+        alert('Error verifying passcode');
+      }
     }
   };
 
