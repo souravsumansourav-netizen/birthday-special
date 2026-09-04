@@ -43,7 +43,8 @@ export default function Home() {
     try {
       const searchParams = new URLSearchParams(window.location.search);
       const isPreview = searchParams.get('preview') === 'true';
-      const endpoint = isPreview ? '/api/surprises?revealAll=true' : '/api/surprises';
+      const passcode = searchParams.get('passcode') || '';
+      const endpoint = isPreview ? `/api/surprises?revealAll=true&passcode=${encodeURIComponent(passcode)}` : '/api/surprises';
       
       const res = await fetch(endpoint);
       const data = await res.json();
