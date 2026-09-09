@@ -37,6 +37,21 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [progress, setProgress] = useState({ revealed: 0, total: 32, daysPassed: 0, totalDays: 29 });
+  const [showDay7Popup, setShowDay7Popup] = useState(false);
+  const [tempRevealData, setTempRevealData] = useState<any>(null);
+
+  const proceedToReveal = (data: any) => {
+    window.scrollTo(0, 0);
+    setSurprises(data.surprises);
+    setIsRevealed(true);
+    setSelectedSurpriseIndex(data.surprises.length - 1);
+    setProgress({
+      revealed: data.totalRevealed,
+      total: data.totalImages,
+      daysPassed: data.daysPassed,
+      totalDays: data.totalDays,
+    });
+  };
 
   const handleReveal = async () => {
     setIsLoading(true);
@@ -52,16 +67,12 @@ export default function Home() {
       if (data.error) throw new Error(data.error);
 
       if (data.surprises && data.surprises.length > 0) {
-        window.scrollTo(0, 0);
-        setSurprises(data.surprises);
-        setIsRevealed(true);
-        setSelectedSurpriseIndex(data.surprises.length - 1);
-        setProgress({
-          revealed: data.totalRevealed,
-          total: data.totalImages,
-          daysPassed: data.daysPassed,
-          totalDays: data.totalDays,
-        });
+        if (data.daysPassed === 7) {
+          setTempRevealData(data);
+          setShowDay7Popup(true);
+        } else {
+          proceedToReveal(data);
+        }
       } else {
         setMessage("No surprises available yet! Check back soon.");
       }
@@ -137,6 +148,45 @@ export default function Home() {
           <Lock size={16} />
         </Link>
       </div>
+
+      <AnimatePresence>
+        {showDay7Popup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+          >
+            <div className="bg-slate-900 border border-rose-500/30 p-8 md:p-12 rounded-3xl shadow-2xl max-w-lg w-full text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-rose-400/10 via-transparent to-transparent pointer-events-none" />
+                <p className="text-xs text-rose-300/80 uppercase tracking-widest mb-4 font-sans">This one is for you</p>
+                <p className="text-2xl md:text-3xl font-serif text-amber-100 leading-relaxed mb-10 italic">
+                  "You have that snowflake magic - soft, quiet, and one of a kind."
+                </p>
+                <div className="flex justify-center gap-4">
+                  <button 
+                    onClick={() => {
+                      setShowDay7Popup(false);
+                      if (tempRevealData) proceedToReveal(tempRevealData);
+                    }}
+                    className="px-8 py-3 rounded-full border border-rose-500/50 text-rose-200 hover:bg-rose-500/20 transition-colors font-serif"
+                  >
+                    Dismiss
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowDay7Popup(false);
+                      if (tempRevealData) proceedToReveal(tempRevealData);
+                    }}
+                    className="px-8 py-3 rounded-full bg-rose-500/20 border border-rose-500/50 text-rose-200 hover:bg-rose-500/40 transition-colors font-serif shadow-[0_0_15px_rgba(251,113,133,0.2)]"
+                  >
+                    Ok
+                  </button>
+                </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {!isRevealed ? (
